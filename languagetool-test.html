@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LanguageTool Checker - Java 21</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+        }
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        .badge {
+            display: inline-block;
+            background: #4CAF50;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            margin-left: 10px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+        select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        textarea {
+            min-height: 200px;
+            resize: vertical;
+            font-family: inherit;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .results {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: none;
+        }
+        .results.show {
+            display: block;
+        }
+        .results h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        .error-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid #ff5252;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .error-type {
+            color: #ff5252;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        .error-message {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .error-context {
+            background: #fff9c4;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            margin-bottom: 10px;
+        }
+        .error-context .highlight {
+            background: #ffeb3b;
+            font-weight: bold;
+        }
+        .suggestions {
+            margin-top: 10px;
+        }
+        .suggestion {
+            display: inline-block;
+            background: #4CAF50;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            margin-right: 8px;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        .no-errors {
+            text-align: center;
+            color: #4CAF50;
+            font-size: 1.2em;
+            padding: 20px;
+        }
+        .spinner {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .spinner.show {
+            display: block;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .spinner::after {
+            content: "";
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>✍️ LanguageTool Checker</h1>
+        <div class="subtitle">
+            Grammar & Spelling Checker
+            <span class="badge">Java 21 LTS</span>
+        </div>
+
+        <div class="form-group">
+            <label for="language">Language:</label>
+            <select id="language">
+                <option value="en-US">English (US)</option>
+                <option value="en-GB">English (UK)</option>
+                <option value="de-DE">German</option>
+                <option value="fr">French</option>
+                <option value="es">Spanish</option>
+                <option value="pt-BR">Portuguese (Brazil)</option>
+                <option value="pt-PT">Portuguese (Portugal)</option>
+                <option value="nl">Dutch</option>
+                <option value="pl">Polish</option>
+                <option value="ru">Russian</option>
+                <option value="it">Italian</option>
+                <option value="ca">Catalan</option>
+                <option value="ja">Japanese</option>
+                <option value="zh-CN">Chinese</option>
+                <option value="auto">Auto-detect</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="text">Text to Check:</label>
+            <textarea id="text" placeholder="Enter your text here... Try: 'This is an example off a text with erors.'"></textarea>
+        </div>
+
+        <button id="checkBtn" onclick="checkText()">Check Text</button>
+
+        <div class="spinner" id="spinner"></div>
+
+        <div class="results" id="results"></div>
+    </div>
+
+    <script>
+        async function checkText() {
+            const text = document.getElementById('text').value;
+            const language = document.getElementById('language').value;
+            const resultsDiv = document.getElementById('results');
+            const spinner = document.getElementById('spinner');
+            const checkBtn = document.getElementById('checkBtn');
+
+            if (!text.trim()) {
+                alert('Please enter some text to check.');
+                return;
+            }
+
+            // Show loading
+            spinner.classList.add('show');
+            resultsDiv.classList.remove('show');
+            checkBtn.disabled = true;
+
+            try {
+                const formData = new URLSearchParams();
+                formData.append('text', text);
+                formData.append('language', language);
+
+                const response = await fetch('http://localhost:8081/v2/check', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error('Server error: ' + response.status);
+                }
+
+                const data = await response.json();
+                displayResults(data);
+
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="error-item">
+                        <div class="error-type">❌ Error</div>
+                        <div class="error-message">
+                            Failed to check text: ${error.message}
+                            <br><br>
+                            Make sure the LanguageTool server is running on port 8081.
+                        </div>
+                    </div>
+                `;
+                resultsDiv.classList.add('show');
+            } finally {
+                spinner.classList.remove('show');
+                checkBtn.disabled = false;
+            }
+        }
+
+        function displayResults(data) {
+            const resultsDiv = document.getElementById('results');
+            const matches = data.matches || [];
+
+            if (matches.length === 0) {
+                resultsDiv.innerHTML = '<div class="no-errors">✅ No errors found! Your text looks great.</div>';
+            } else {
+                let html = `<h2>Found ${matches.length} issue(s):</h2>`;
+                
+                matches.forEach((match, index) => {
+                    const context = match.context.text;
+                    const offset = match.context.offset;
+                    const length = match.context.length;
+                    
+                    const before = context.substring(0, offset);
+                    const error = context.substring(offset, offset + length);
+                    const after = context.substring(offset + length);
+
+                    html += `
+                        <div class="error-item">
+                            <div class="error-type">${match.rule.category.name}</div>
+                            <div class="error-message">${match.message}</div>
+                            <div class="error-context">
+                                ${escapeHtml(before)}<span class="highlight">${escapeHtml(error)}</span>${escapeHtml(after)}
+                            </div>
+                            ${match.replacements && match.replacements.length > 0 ? `
+                                <div class="suggestions">
+                                    <strong>Suggestions:</strong><br>
+                                    ${match.replacements.map(r => `<span class="suggestion">${escapeHtml(r.value)}</span>`).join('')}
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                });
+
+                resultsDiv.innerHTML = html;
+            }
+
+            resultsDiv.classList.add('show');
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Sample text for testing
+        document.getElementById('text').value = 'This is an example off a text with erors. It have some mistake that should be detected by LanguageTool.';
+    </script>
+</body>
+</html>
